@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <input type="text" />Enter a number
+    <button onclick=getSums()>Submit</button>
+</body>
+<script>
+    var wk = new Worker('./culculate.js');
+    wk.onmessage = function(total){
+        console.log(total.data)
+        alert(total.data);
+    }
+    function getSums(){
+        // console.log('aa');
+        var num = document.querySelector('input').value;
+        if(num){
+            // for(var i = 0; i < parseInt(num) * 100000000; i++){
+                //     total += parseInt(num);
+                //     console.log(num);
+                // }
+            wk.postMessage(num);
+        }
+    }
+</script>
+</html>
