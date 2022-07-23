@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <a id="download_file">跳转</a>
+    <!-- a标签的download属性只能下载同源的文件 -->
+    
+    <input type="file" id="input_file" />
+
+    <script>
+        var str = `<div>
+                        <div>
+                            <p>123</p>
+                        </div>
+                    </div>`;
+        var blob = new Blob([str], {
+            type: "text/html"
+        });
+
+        var btn = document.querySelector("#download_file");
+        btn.onclick = function(e) {
+            this.setAttribute("download", '123.html');
+            this.href = URL.createObjectURL(blob);
+        }
+
+        var input = document.querySelector("#input_file");
+        input.onchange = function(e) {
+            var f = e.target.files[0];
+
+            // 1.文件下载
+            // var a = document.createElement('a');
+
+            // a.setAttribute('download', 'myBaidu.html');
+            // a.href = URL.createObjectURL(f);
+            // a.click();
+
+            // 2.图片预览_方法1_同步
+            // var img = new Image();
+            // img.src = URL.createObjectURL(f);
+
+            // document.body.appendChild(img);
+
+            // 2.图片预览_方法2_异步
+            var img = new Image();
+
+            document.body.appendChild(img);
+
+            var fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                img.src = fileReader.result;
+            }
+
+            fileReader.readAsDataURL(f);
+        }
+    </script>
+</body>
+</html>

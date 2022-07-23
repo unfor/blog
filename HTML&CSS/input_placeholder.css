@@ -1,0 +1,8 @@
+/**
+*   改变input框的placeholder大小，颜色
+**/
+input::-webkit-input-placeholder{
+    font-size:32px;
+    color:red;
+    opacity:1;
+}

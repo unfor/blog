@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .form-control{
+            width: 100%;
+            height: 38px;
+            line-height: 38px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <form name="validatForm" id="validateForm" style="margin: 0 auto;width: 440px; height: 440px;margin-top: 50px;border: 1px solid #ccc;padding: 20px;
+    display: flex;flex-direction: column;justify-content: space-between;" target="rfFrame">
+        <div class="form-control">
+            <label for="username">用户名:</label>
+            <input type="text" name="username" id="username" autocomplete="none" style="width: 200px;height: 21px;line-height: 21px;"/>
+        </div>
+        <div class="form-control">
+            <label for="userpassword">密码:</label>
+            <input type="password" name="userpassword" id="userpassword"  style="width: 200px;height: 21px;line-height: 21px;"/>
+        </div>
+        <div class="form-control">
+            <label for="usersex">性别:</label>
+            <span style="width: 208px;display: flex;justify-content: space-between;">
+                <span>
+                    <input id="male" type="radio" name="usersex" value="male"/>
+                    <label for="male">男</label>
+                </span>
+                <span>
+                    <input id="famale" type="radio" name="usersex" value="famale"/>
+                    <label for="famale">女</label>
+                </span>
+            </span>
+        </div>
+        <div class="form-control">
+            <label for="usertel">手机号码:</label>
+            <input type="tel" name="usertel" id="usertel"  style="width: 200px;height: 21px;line-height: 21px;"/>
+        </div>
+        <div class="form-control">
+            <label for="useremail">邮箱:</label>
+            <input type="email" name="useremail" id="useremail"  style="width: 200px;height: 21px;line-height: 21px;"/>
+        </div>
+        <button type="submit" value="submit" form="validateForm" style="width: 100px;height: 30px;align-self: flex-end;">Submit</button>
+    </form>
+    <div style="margin: 0 auto;width: 480px;margin-top: 30px;">
+        <label for="checkResult">检测结果:</label>
+        <textarea id="checkResult" style="width: 300px; float: right;max-width: 300px;min-width: 300px;height: 100px;" placeholder="        所有选项不能为空
+        用户名长度不能少于6位
+        密码长度不能少于6位
+        手机号码必须符合格式
+        邮箱地址必须符合格式"></textarea>
+    </div>
+    <iframe id="rfFrame" name="rfFrame" src="about:blank" style="display:none;"></iframe> 
+    <script>
+        var $validateForm = document.querySelector('form');
+        var $checkResult = document.querySelector('#checkResult');
+
+        //先定义具体的不同类型的验证器
+        const strategies = {
+            isNonEmpty(value, errorMsg) {
+                return value === '' ?
+                    errorMsg : void 0
+            },
+            minLength(value, length, errorMsg) {
+                return value.length < length ?
+                    errorMsg : void 0
+            },
+            isMoblie(value, errorMsg) {
+                return !/^1(3|5|7|8|9)[0-9]{9}$/.test(value) ?
+                    errorMsg : void 0
+            },
+            isEmail(value, errorMsg) {
+                return !/^\w+([+-.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/.test(value) ?
+                    errorMsg : void 0
+            }
+        }
+
+        //定义验证器基类
+        class Validator {
+            constructor() {
+                this.cache = [] //保存校验规则
+            }
+            add(dom, rules) {
+                for (let rule of rules) {
+                    let strategyAry = rule.strategy.split(':') //例如['minLength',6]
+                    let errorMsg = rule.errorMsg //'用户名不能为空'
+                    this.cache.push(() => {
+                        let strategy = strategyAry.shift() //用户挑选的strategy
+                        strategyAry.unshift(dom.value) //把input的value添加进参数列表
+                        strategyAry.push(errorMsg) //把errorMsg添加进参数列表，[dom.value,6,errorMsg]
+                        return strategies[strategy].apply(dom, strategyAry)
+                    })
+                }
+            }
+            start() {
+                for (let validatorFunc of this.cache) {
+                    let errorMsg = validatorFunc()//开始校验，并取得校验后的返回信息
+                    if (errorMsg) {//r如果有确切返回值，说明校验没有通过
+                        return errorMsg
+                    }
+                }
+            }
+        }
+
+        const validatorFunc = () => {
+            let validator = new Validator()
+
+            validator.add($validateForm.username, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '用户名不能为空！'
+            }, {
+                strategy: 'minLength:6',
+                errorMsg: '用户名长度不能小于6位！'
+            }])
+
+            validator.add($validateForm.userpassword, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '密码不能为空！'
+            }, {
+                strategy: 'minLength:',
+                errorMsg: '密码长度不能小于6位！'
+            }])
+
+            validator.add($validateForm.usertel, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '手机号码不能为空！'
+            }, {
+                strategy: 'isMoblie',
+                errorMsg: '手机号码格式不正确！'
+            }])
+
+            validator.add($validateForm.useremail, [{
+                strategy: 'isNonEmpty',
+                errorMsg: '邮箱地址不能为空！'
+            }, {
+                strategy: 'isEmail',
+                errorMsg: '邮箱地址格式不正确！'
+            }])
+            let errorMsg = validator.start()
+            return errorMsg;
+        }
+
+        $validateForm.addEventListener('submit', function() {
+            let errorMsg = validatorFunc()
+            if (errorMsg) {
+                $checkResult.innerHTML = errorMsg;
+                return false
+            }
+        }, false)
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+/**
+*   设置文本垂直居中
+**/
+
+.parent {
+    display: table;
+    /* width: 300px; */
+    width: calc(100% - 10px);
+    height: 300px;
+    text-align: center;
+}
+.son {
+    display: table-cell;
+    height: 200px;
+    background-color: yellow;
+    vertical-align: middle;
+}
